@@ -4,11 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <title>Pay</title>
-<script>
-// Android colours the status bar and the gesture-bar strip from the manifest chosen when the app is installed,
-// so pick the dark one if the phone is in dark mode (black strip) and the light one otherwise.
-document.write('<link rel="manifest" href="manifest-' + (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') + '.webmanifest">');
-</script>
+<!-- Pure black (#000000) for the gesture-bar strip and app background on AMOLED, in both day and night mode. -->
+<link rel="manifest" href="manifest-black.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#f4f4f7" media="(prefers-color-scheme: light)">
