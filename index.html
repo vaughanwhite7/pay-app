@@ -4,7 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <title>Pay</title>
-<link rel="manifest" href="manifest.webmanifest">
+<script>
+// Android colours the status bar and the gesture-bar strip from the manifest chosen when the app is installed,
+// so pick the dark one if the phone is in dark mode (black strip) and the light one otherwise.
+document.write('<link rel="manifest" href="manifest-' + (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') + '.webmanifest">');
+</script>
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#f4f4f7" media="(prefers-color-scheme: light)">
@@ -13,7 +17,8 @@
 :root{--page:#f4f4f7;--card:#ffffff;--text:#1b1b1f;--sub:#6e6e76;--accent:#3e91ff;--soft:#e4eeff;--accentText:#1a5fd0}
 @media (prefers-color-scheme:dark){:root{--page:#000000;--card:#17171a;--text:#f2f2f5;--sub:#a1a1aa;--soft:#112a4d;--accentText:#9cc3ff}}
 html,body{margin:0;height:100%;background:var(--page);color:var(--text);font-family:"SamsungOne","Roboto",system-ui,sans-serif;overflow:hidden}
-iframe{position:fixed;inset:0;width:100%;height:100%;border:0;background:var(--page)}
+iframe{position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;border:0;background:var(--page)}
+html{background:var(--page)}
 .screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;background:var(--page);z-index:2}
 .screen[hidden]{display:none}
 .logo{width:84px;height:84px;border-radius:26px;margin-bottom:18px}
