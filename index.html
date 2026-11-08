@@ -52,6 +52,8 @@ button.alt{background:var(--soft);color:var(--accentText)}
   </div>
 </div>
 <iframe id="app" title="Pay" allow="clipboard-write"></iframe>
+<!-- Measures the gesture-bar area (edge-to-edge, Chrome 135+) so the app can let content scroll behind the pill. -->
+<div id="sab" style="position:fixed;left:0;bottom:0;width:1px;height:env(safe-area-inset-bottom,0px);visibility:hidden;pointer-events:none"></div>
 <script>
 var KEY='payAppUrl', frame=document.getElementById('app'), wait=document.getElementById('wait'), setup=document.getElementById('setup'), timer;
 // Theme chosen in the app's Settings → Look and feel ('' = follow the phone). Also colours the status / gesture bar.
@@ -60,6 +62,9 @@ function theme(mode){var r=document.documentElement;r.classList.toggle('light',m
   metas.forEach(function(m,i){if(mode){m.setAttribute('content',mode==='dark'?'#000000':'#f4f4f7');m.removeAttribute('media');}else{m.setAttribute('content',orig[i][0]);if(orig[i][1])m.setAttribute('media',orig[i][1]);}});
   try{localStorage.setItem(THK,mode||'');}catch(e){}}
 try{theme(localStorage.getItem(THK)||'');}catch(e){}
+var appWin=null;
+function sendInsets(){if(!appWin)return;var b=document.getElementById('sab').offsetHeight||0;try{appWin.postMessage({payShell:'insets',bottom:b},'*');}catch(e){}}
+window.addEventListener('resize',function(){setTimeout(sendInsets,60);});
 function get(){try{return localStorage.getItem(KEY)||'';}catch(e){return '';}}
 function set(v){try{localStorage.setItem(KEY,v);}catch(e){}}
 function valid(u){return /^https:\/\/script\.google\.com\/(a\/[^/]+\/)?macros\/s\/[^/]+\/exec/.test(u);}
@@ -73,7 +78,7 @@ function start(){
 window.addEventListener('message',function(e){
   var ok=false;try{ok=/(\.googleusercontent\.com|script\.google\.com)$/.test(new URL(e.origin).hostname);}catch(x){}
   if(!ok||!e.data)return;
-  if(e.data.payApp==='ready'){clearTimeout(timer);wait.hidden=true;}
+  if(e.data.payApp==='ready'){clearTimeout(timer);wait.hidden=true;appWin=e.source;sendInsets();}
   if(e.data.payApp==='theme'&&(e.data.mode===''||e.data.mode==='light'||e.data.mode==='dark'))theme(e.data.mode);
   // Haptics from the app: Chrome blocks vibration inside the embedded Google page, so the shell does it.
   if(e.data.payApp==='vibrate'&&navigator.vibrate){var p=e.data.p;
