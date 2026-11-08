@@ -14,7 +14,8 @@
 <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
 <style>
 :root{--page:#f4f4f7;--card:#ffffff;--text:#1b1b1f;--sub:#6e6e76;--accent:#3e91ff;--soft:#e4eeff;--accentText:#1a5fd0}
-@media (prefers-color-scheme:dark){:root{--page:#000000;--card:#17171a;--text:#f2f2f5;--sub:#a1a1aa;--soft:#112a4d;--accentText:#9cc3ff}}
+@media (prefers-color-scheme:dark){:root:not(.light){--page:#000000;--card:#17171a;--text:#f2f2f5;--sub:#a1a1aa;--soft:#112a4d;--accentText:#9cc3ff}}
+:root.dark{--page:#000000;--card:#17171a;--text:#f2f2f5;--sub:#a1a1aa;--soft:#112a4d;--accentText:#9cc3ff}
 html,body{margin:0;height:100%;background:var(--page);color:var(--text);font-family:"Google Sans Flex","Google Sans",system-ui,"Roboto",sans-serif;overflow:hidden}
 iframe{position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;border:0;background:var(--page)}
 html{background:var(--page)}
@@ -53,6 +54,12 @@ button.alt{background:var(--soft);color:var(--accentText)}
 <iframe id="app" title="Pay" allow="clipboard-write"></iframe>
 <script>
 var KEY='payAppUrl', frame=document.getElementById('app'), wait=document.getElementById('wait'), setup=document.getElementById('setup'), timer;
+// Theme chosen in the app's Settings → Look and feel ('' = follow the phone). Also colours the status / gesture bar.
+var THK='payAppShellTheme',metas=Array.prototype.slice.call(document.querySelectorAll('meta[name="theme-color"]')),orig=metas.map(function(m){return [m.getAttribute('content'),m.getAttribute('media')];});
+function theme(mode){var r=document.documentElement;r.classList.toggle('light',mode==='light');r.classList.toggle('dark',mode==='dark');
+  metas.forEach(function(m,i){if(mode){m.setAttribute('content',mode==='dark'?'#000000':'#f4f4f7');m.removeAttribute('media');}else{m.setAttribute('content',orig[i][0]);if(orig[i][1])m.setAttribute('media',orig[i][1]);}});
+  try{localStorage.setItem(THK,mode||'');}catch(e){}}
+try{theme(localStorage.getItem(THK)||'');}catch(e){}
 function get(){try{return localStorage.getItem(KEY)||'';}catch(e){return '';}}
 function set(v){try{localStorage.setItem(KEY,v);}catch(e){}}
 function valid(u){return /^https:\/\/script\.google\.com\/(a\/[^/]+\/)?macros\/s\/[^/]+\/exec/.test(u);}
@@ -67,6 +74,7 @@ window.addEventListener('message',function(e){
   var ok=false;try{ok=/(\.googleusercontent\.com|script\.google\.com)$/.test(new URL(e.origin).hostname);}catch(x){}
   if(!ok||!e.data)return;
   if(e.data.payApp==='ready'){clearTimeout(timer);wait.hidden=true;}
+  if(e.data.payApp==='theme'&&(e.data.mode===''||e.data.mode==='light'||e.data.mode==='dark'))theme(e.data.mode);
   // Haptics from the app: Chrome blocks vibration inside the embedded Google page, so the shell does it.
   if(e.data.payApp==='vibrate'&&navigator.vibrate){var p=e.data.p;
     if(typeof p==='number'&&p>0&&p<=200)navigator.vibrate(p);
