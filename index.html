@@ -64,7 +64,13 @@ function start(){
   clearTimeout(timer); timer=setTimeout(function(){document.getElementById('help').hidden=false;document.getElementById('spin').hidden=true;},12000);
 }
 window.addEventListener('message',function(e){
-  if(e.data&&e.data.payApp==='ready'&&/(\.googleusercontent\.com|script\.google\.com)$/.test(new URL(e.origin).hostname)){clearTimeout(timer);wait.hidden=true;}
+  var ok=false;try{ok=/(\.googleusercontent\.com|script\.google\.com)$/.test(new URL(e.origin).hostname);}catch(x){}
+  if(!ok||!e.data)return;
+  if(e.data.payApp==='ready'){clearTimeout(timer);wait.hidden=true;}
+  // Haptics from the app: Chrome blocks vibration inside the embedded Google page, so the shell does it.
+  if(e.data.payApp==='vibrate'&&navigator.vibrate){var p=e.data.p;
+    if(typeof p==='number'&&p>0&&p<=200)navigator.vibrate(p);
+    else if(Array.isArray(p)&&p.length<=6&&p.every(function(v){return typeof v==='number'&&v>=0&&v<=200;}))navigator.vibrate(p);}
 });
 document.getElementById('save').onclick=function(){
   var u=document.getElementById('url').value.trim();
