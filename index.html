@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <title>Pay</title>
-<!-- Pure black (#000000) for the gesture-bar strip and app background on AMOLED, in both day and night mode. -->
+<!-- Gesture-bar colour comes from the manifest: black, or light grey in light mode when Settings → Navigation bar is “Match theme”. -->
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@400;500;600;700&display=swap">
 <link rel="manifest" href="manifest-black.webmanifest">
@@ -58,10 +58,19 @@ button.alt{background:var(--soft);color:var(--accentText)}
 var KEY='payAppUrl', frame=document.getElementById('app'), wait=document.getElementById('wait'), setup=document.getElementById('setup'), timer;
 // Theme chosen in the app's Settings → Look and feel ('' = follow the phone). Also colours the status / gesture bar.
 var THK='payAppShellTheme',metas=Array.prototype.slice.call(document.querySelectorAll('meta[name="theme-color"]')),orig=metas.map(function(m){return [m.getAttribute('content'),m.getAttribute('media')];});
-function theme(mode){var r=document.documentElement;r.classList.toggle('light',mode==='light');r.classList.toggle('dark',mode==='dark');
+// Navigation bar (Settings → Look and feel): 'black' always, or 'theme' = black in dark mode, light grey in light mode.
+// Android bakes the installed app's bar colour in from the manifest, so this swaps the manifest; Chrome picks it up when it refreshes the app.
+var NVK='payAppShellNav',mq=window.matchMedia?window.matchMedia('(prefers-color-scheme: dark)'):null,curMode='';
+function navBar(){var nav='black';try{nav=localStorage.getItem(NVK)||'black';}catch(e){}
+  var dk=curMode==='dark'||(curMode===''&&mq&&mq.matches),light=nav==='theme'&&!dk;
+  var l=document.querySelector('link[rel="manifest"]'),want=light?'manifest-light.webmanifest':'manifest-black.webmanifest';
+  if(l&&l.getAttribute('href')!==want)l.setAttribute('href',want);}
+function theme(mode,nav){var r=document.documentElement;curMode=mode||'';r.classList.toggle('light',mode==='light');r.classList.toggle('dark',mode==='dark');
   metas.forEach(function(m,i){if(mode){m.setAttribute('content',mode==='dark'?'#000000':'#f4f4f7');m.removeAttribute('media');}else{m.setAttribute('content',orig[i][0]);if(orig[i][1])m.setAttribute('media',orig[i][1]);}});
-  try{localStorage.setItem(THK,mode||'');}catch(e){}}
+  try{localStorage.setItem(THK,mode||'');if(nav==='black'||nav==='theme')localStorage.setItem(NVK,nav);}catch(e){}
+  navBar();}
 try{theme(localStorage.getItem(THK)||'');}catch(e){}
+if(mq&&mq.addEventListener)mq.addEventListener('change',navBar);
 var appWin=null;
 function sendInsets(){if(!appWin)return;var b=document.getElementById('sab').offsetHeight||0;try{appWin.postMessage({payShell:'insets',bottom:b},'*');}catch(e){}}
 window.addEventListener('resize',function(){setTimeout(sendInsets,60);});
@@ -79,7 +88,7 @@ window.addEventListener('message',function(e){
   var ok=false;try{ok=/(\.googleusercontent\.com|script\.google\.com)$/.test(new URL(e.origin).hostname);}catch(x){}
   if(!ok||!e.data)return;
   if(e.data.payApp==='ready'){clearTimeout(timer);wait.hidden=true;appWin=e.source;sendInsets();}
-  if(e.data.payApp==='theme'&&(e.data.mode===''||e.data.mode==='light'||e.data.mode==='dark'))theme(e.data.mode);
+  if(e.data.payApp==='theme'&&(e.data.mode===''||e.data.mode==='light'||e.data.mode==='dark'))theme(e.data.mode,e.data.nav);
   // Haptics from the app: Chrome blocks vibration inside the embedded Google page, so the shell does it.
   if(e.data.payApp==='vibrate'&&navigator.vibrate){var p=e.data.p;
     if(typeof p==='number'&&p>0&&p<=200)navigator.vibrate(p);

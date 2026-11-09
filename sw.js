@@ -1,6 +1,6 @@
 // Minimal service worker: caches the app shell so it opens instantly. Your pay data always comes live from Google.
-const CACHE = 'pay-shell-v6';
-const SHELL = ['./', 'index.html', 'manifest-black.webmanifest', 'icon-192.png', 'icon-512.png'];
+const CACHE = 'pay-shell-v7';
+const SHELL = ['./', 'index.html', 'manifest-black.webmanifest', 'manifest-light.webmanifest', 'icon-192.png', 'icon-512.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL))); self.skipWaiting(); });
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))));
